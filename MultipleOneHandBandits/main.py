@@ -1,7 +1,7 @@
 import numpy as np
 
 
-# bandit
+# bandit with win threshold and payoff
 class Bandit:
     def __init__(self, id):
         self.id = id
@@ -11,11 +11,6 @@ class Bandit:
         print("     win prob: ", 1 - self.win_threshold)
         print("     win reward: ", self.reward)
 
-    def play(self, roll_result):
-        if roll_result > self.win_threshold:
-            return self.reward
-        else:
-            return 0
 
 class Agent:
     def __init__(self, env, epsilon, rand_tries_max):
@@ -27,10 +22,9 @@ class Agent:
         self.b_i = np.zeros(len(env.bandits))  #how many times given bandit was selected
         self.e = epsilon # how often to check other that the best option
         # for a step
-        self.i = 0 # try count
-        self.chosen_id = 0
-        self.reward = 0
-
+        self.i = 0 # iteration number
+        self.chosen_id = 0 # current chosen bandit
+        self.reward = 0 # reward obtained for chosen bandit
 
     def choose_bandit(self):
         self.i += 1
@@ -54,15 +48,14 @@ class Agent:
         self.avg_reward[self.chosen_id] = self.total_reward[self.chosen_id] / self.b_i[self.chosen_id]
 
 
-
 class Environment:
-    # num of bandits, epsilon val for epsilon-greedy, trial count max, deviation and variance for normal distribution for playing the bandit
+    
     def __init__(self, bandit_count, n_times):
-        self.n_times = n_times
-        self.bandit_count = bandit_count
+        self.n_times = n_times #max number of actions taken by an agent (steps)
+        self.bandit_count = bandit_count # num of bandits
         self.bandits = []
         for i in range(bandit_count):
-            self.bandits.append(Bandit(i))
+            self.bandits.append(Bandit(i)) #init bandits
 
     def run(self, agent):
         self.total_reward = 0
@@ -79,11 +72,12 @@ class Environment:
                 reward = chosen_bandit.reward
             else:
                 reward = 0
-            # agent learns of reward
+            # save the reward
             agent.reward = reward
-            # agent updates parameters based on the data
+            # agent learns of reward
             agent.update(reward)
             self.total_reward += reward
+            
 
         print("total reward: ", self.total_reward)
         return self.total_reward
