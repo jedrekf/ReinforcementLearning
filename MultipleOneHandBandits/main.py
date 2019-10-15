@@ -46,6 +46,7 @@ class Agent:
                 self.chosen_id = np.argmax(self.avg_reward)
 
         self.b_i[self.chosen_id] += 1
+        print("chose bandit " + str(self.chosen_id))
         return self.chosen_id
 
     def update(self, reward):
@@ -91,5 +92,5 @@ class Environment:
 
 env = Environment(10, 2000)
 # epsilon determines with what probability to check other options that the current best one
-agent = Agent(env, 0.05, 400) 
+agent = Agent(env, 0.05, 400)
 env.run(agent)
