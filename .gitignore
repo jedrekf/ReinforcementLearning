@@ -1,4 +1,7 @@
 .vscode
 *.zip
 *.pdf
+__pycache__
+.vs
+selfdriving/
 

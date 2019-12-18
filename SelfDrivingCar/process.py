@@ -1,9 +1,11 @@
 import numpy as np
 import cv2
 import time
-import pyautogui
+# import pyautogui
 from draw_lanes import draw_lanes
 from grabscreen import grab_screen
+from PIL import Image
+from displayimg import *
 
 def roi(img, vertices):
     
@@ -13,6 +15,8 @@ def roi(img, vertices):
     #filling pixels inside the polygon defined by "vertices" with the fill color    
     cv2.fillPoly(mask, vertices, 255)
     
+    # showgray(mask)
+
     #returning the image only where mask pixels are nonzero
     masked = cv2.bitwise_and(img, mask)
     return masked
@@ -24,24 +28,34 @@ def process_img(image):
     # convert to gray
     processed_img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # edge detection
-    processed_img =  cv2.Canny(processed_img, threshold1 = 200, threshold2=300)
+
+    processed_img = cv2.GaussianBlur(processed_img,(5,5),0)
+
+    processed_img =  cv2.Canny(processed_img, threshold1 = 130, threshold2=250)
     
     processed_img = cv2.GaussianBlur(processed_img,(5,5),0)
     
-    vertices = np.array([[10,500],[10,300],[300,200],[500,200],[800,300],[800,500],
-                         ], np.int32)
+    # showgray(processed_img)
+    
+    #map this to 320x160
+    # vertices = np.array([[10,200],[10,300],[300,200],[500,200],[800,300],[800,500],], np.int32)
+    # vertices = np.array( [[[5,70],[315,70],[315,150],[5,150]]], dtype=np.int32 )
+    vertices = np.array( [[5,100], [170,50], [315,100], [315,125], [5,125]], dtype=np.int32 )
 
     processed_img = roi(processed_img, [vertices])
 
+    # showgray(processed_img)
+
     # more info: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
     #                                     rho   theta   thresh  min length, max gap:        
-    lines = cv2.HoughLinesP(processed_img, 1, np.pi/180, 180,      20,       15)
+    lines = cv2.HoughLinesP(processed_img, 1, np.pi/180, 20,      10,       15)
     m1 = 0
     m2 = 0
     try:
         l1, l2, m1,m2 = draw_lanes(original_image,lines)
-        cv2.line(original_image, (l1[0], l1[1]), (l1[2], l1[3]), [0,255,0], 30)
-        cv2.line(original_image, (l2[0], l2[1]), (l2[2], l2[3]), [0,255,0], 30)
+        cv2.line(original_image, (l1[0], l1[1]), (l1[2], l1[3]), [0,255,0], 5)
+        cv2.line(original_image, (l2[0], l2[1]), (l2[2], l2[3]), [0,255,0], 5)
+        # showimg(original_image)
     except Exception as e:
         print(str(e))
         pass
@@ -50,11 +64,29 @@ def process_img(image):
             coords = coords[0]
             try:
                 cv2.line(processed_img, (coords[0], coords[1]), (coords[2], coords[3]), [255,0,0], 3)
-                
-                
             except Exception as e:
                 print(str(e))
     except Exception as e:
         pass
 
     return processed_img,original_image, m1, m2
+
+
+
+if __name__ == '__main__':
+    screen = image = cv2.imread("./images/center_1.jpg")#Image.open("./images/center_1.jpg")
+
+    # cv2.imshow("a", cv2.cvtColor(screen, cv2.COLOR_RGB2HLS))
+    # cv2.imshow("b", cv2.cvtColor(screen, cv2.COLOR_RGB2HSV))
+
+    # cv2.waitKey(0) # waits until a key is pressed
+    # cv2.destroyAllWindows()
+
+    new_screen,original_image, m1, m2 = process_img(screen)
+    #cv2.imshow('window', new_screen)
+    cv2.imshow('window_original', original_image)
+    cv2.imshow('window_processed',cv2.cvtColor(new_screen, cv2.COLOR_GRAY2BGR))
+    
+    cv2.waitKey(0) # waits until a key is pressed
+    cv2.destroyAllWindows()
+

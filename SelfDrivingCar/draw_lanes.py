@@ -16,7 +16,7 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
             for ii in i:
                 ys += [ii[1],ii[3]]
         min_y = min(ys)
-        max_y = 600
+        max_y = 160
         new_lines = []
         line_dict = {}
 
@@ -30,12 +30,13 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
                 A = vstack([x_coords,ones(len(x_coords))]).T
                 m, b = lstsq(A, y_coords)[0]
 
-                # Calculating our new, and improved, xs
-                x1 = (min_y-b) / m
-                x2 = (max_y-b) / m
+                if m != 0:
+                    # Calculating our new, and improved, xs
+                    x1 = (min_y-b) / m
+                    x2 = (max_y-b) / m
 
-                line_dict[idx] = [m,b,[int(x1), min_y, int(x2), max_y]]
-                new_lines.append([int(x1), min_y, int(x2), max_y])
+                    line_dict[idx] = [m,b,[int(x1), min_y, int(x2), max_y]]
+                    new_lines.append([int(x1), min_y, int(x2), max_y])
 
         final_lanes = {}
 
@@ -86,6 +87,7 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
 
         l1_x1, l1_y1, l1_x2, l1_y2 = average_lane(final_lanes[lane1_id])
         l2_x1, l2_y1, l2_x2, l2_y2 = average_lane(final_lanes[lane2_id])
+        
 
         return [l1_x1, l1_y1, l1_x2, l1_y2], [l2_x1, l2_y1, l2_x2, l2_y2], lane1_id, lane2_id
     except Exception as e:

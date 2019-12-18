@@ -18,6 +18,9 @@ from config import *
 from process import *
 import numpy as np
 from PIL import Image
+from environment import Env
+from agent import SimpleAgent
+from displayimg import *
 
 # initialize our server
 sio = socketio.Server()
@@ -25,9 +28,9 @@ sio = socketio.Server()
 app = Flask(__name__)
 # init our model and image array as empty
 
-# and a speed limit
-speed_limit = MAX_SPEED
-
+#AGENT's knowledge about environment
+env = Env(MAX_SPEED, MIN_SPEED)
+agent = SimpleAgent(env)
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -39,45 +42,18 @@ def telemetry(sid, data):
         # The current speed of the car
         speed = float(data["speed"])
         # The current image from the center camera of the car
-        screen = Image.open(BytesIO(base64.b64decode(data["image"])))
+        pil_image = Image.open(BytesIO(base64.b64decode(data["image"])))
+        screen = cv2.cvtColor(numpy.array(pil_image), cv2.COLOR_RGB2BGR)
         try:
-            print('Frame took {} seconds'.format(time.time()-last_time))
-            last_time = time.time()
-            new_screen,original_image, m1, m2 = process_img(screen)
-            #cv2.imshow('window', new_screen)
-            cv2.imshow('window2',cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB))
-            
-            if m1 < 0 and m2 < 0:
-                steering_angle  = 0.5;
-            elif m1 > 0  and m2 > 0:
-                steering_angle = -0.5
-            else:
-                # straight()
-                print("straight")
-            
-            cv2.imshow('window',cv2.cvtColor(screen, cv2.COLOR_BGR2RGB))
-
-            prediction_last = datetime.now() - start_prediction
-            # lower the throttle as the speed increases
-            # if the speed is above the current speed limit, we are on a downhill.
-            # make sure we slow down first and then go back to the original max speed.
-            global speed_limit
-            if speed > speed_limit:
-                speed_limit = MIN_SPEED  # slow down
-            else:
-                speed_limit = MAX_SPEED
-            throttle = 1.0 - steering_angle ** 2 - (speed / speed_limit) ** 2
-
-            print('predict time: {}; steering angle:{}; throttle:{}'.format(prediction_last.microseconds / 1000000, steering_angle, throttle))
+            new_screen, original_image, m1, m2 = process_img(screen)
+            env.update(speed, throttle, steering_angle, [m1, m2])
+            steering_angle, throttle = agent.process()
+            showimg_nonblock(original_image)
+           
+            print('sending:: steering angle:{} throttle:{}'.format(steering_angle, throttle))
             send_control(steering_angle, throttle)
         except Exception as e:
             print(e)
-
-        # save frame
-        # if args.image_folder != '':
-        #     timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-        #     image_filename = os.path.join(args.image_folder, timestamp)
-        #     image.save('{}.jpg'.format(image_filename))
     else:
         sio.emit('manual', data={}, skip_sid=True)
 
