@@ -66,12 +66,13 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
         line_counter = {}
 
         for lanes in final_lanes:
-            line_counter[lanes] = len(final_lanes[lanes])
+            m_b = tuple(final_lanes[lanes][0][:2])
+            line_counter[m_b] = len(final_lanes[lanes])
 
         top_lanes = sorted(line_counter.items(), key=lambda item: item[1])[::-1][:2]
 
-        lane1_id = top_lanes[0][0]
-        lane2_id = top_lanes[1][0]
+        lane1_m, lane1_b = top_lanes[0][0]
+        lane2_m, lane2_b = top_lanes[1][0]
 
         def average_lane(lane_data):
             x1s = []
@@ -85,10 +86,10 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
                 y2s.append(data[2][3])
             return int(mean(x1s)), int(mean(y1s)), int(mean(x2s)), int(mean(y2s)) 
 
-        l1_x1, l1_y1, l1_x2, l1_y2 = average_lane(final_lanes[lane1_id])
-        l2_x1, l2_y1, l2_x2, l2_y2 = average_lane(final_lanes[lane2_id])
+        l1_x1, l1_y1, l1_x2, l1_y2 = average_lane(final_lanes[lane1_m])
+        l2_x1, l2_y1, l2_x2, l2_y2 = average_lane(final_lanes[lane2_m])
         
 
-        return [l1_x1, l1_y1, l1_x2, l1_y2], [l2_x1, l2_y1, l2_x2, l2_y2], lane1_id, lane2_id
+        return [l1_x1, l1_y1, l1_x2, l1_y2], [l2_x1, l2_y1, l2_x2, l2_y2], lane1_m, lane1_b, lane2_m, lane2_b
     except Exception as e:
         print(str(e))

@@ -52,7 +52,7 @@ def process_img(image):
     m1 = 0
     m2 = 0
     try:
-        l1, l2, m1,m2 = draw_lanes(original_image,lines)
+        l1, l2, m1, b1, m2, b2 = draw_lanes(original_image,lines)
         cv2.line(original_image, (l1[0], l1[1]), (l1[2], l1[3]), [0,255,0], 5)
         cv2.line(original_image, (l2[0], l2[1]), (l2[2], l2[3]), [0,255,0], 5)
         # showimg(original_image)
@@ -69,7 +69,7 @@ def process_img(image):
     except Exception as e:
         pass
 
-    return processed_img,original_image, m1, m2
+    return processed_img,original_image, m1, b1, m2, b2
 
 
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # cv2.waitKey(0) # waits until a key is pressed
     # cv2.destroyAllWindows()
 
-    new_screen,original_image, m1, m2 = process_img(screen)
+    new_screen,original_image, m1, b1, m2, b2 = process_img(screen)
     #cv2.imshow('window', new_screen)
     cv2.imshow('window_original', original_image)
     cv2.imshow('window_processed',cv2.cvtColor(new_screen, cv2.COLOR_GRAY2BGR))

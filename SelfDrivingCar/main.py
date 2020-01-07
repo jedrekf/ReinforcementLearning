@@ -19,8 +19,9 @@ from process import *
 import numpy as np
 from PIL import Image
 from environment import Env
-from agent import SimpleAgent
+from simple_agent import SimpleAgent
 from displayimg import *
+from driver_agent import DriverAgent
 
 # initialize our server
 sio = socketio.Server()
@@ -30,7 +31,9 @@ app = Flask(__name__)
 
 #AGENT's knowledge about environment
 env = Env(MAX_SPEED, MIN_SPEED)
-agent = SimpleAgent(env)
+# agent = SimpleAgent(env)
+#agent = SimpleAgent(env)
+agent = DriverAgent(env, 1000, 0.2)
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -45,9 +48,11 @@ def telemetry(sid, data):
         pil_image = Image.open(BytesIO(base64.b64decode(data["image"])))
         screen = cv2.cvtColor(numpy.array(pil_image), cv2.COLOR_RGB2BGR)
         try:
-            new_screen, original_image, m1, m2 = process_img(screen)
-            env.update(speed, throttle, steering_angle, [m1, m2])
+            new_screen, original_image, m1, b1, m2, b2,= process_img(screen)
+            env.update(speed, throttle, steering_angle, (m1, m2))
             steering_angle, throttle = agent.process()
+
+
             showimg_nonblock(original_image)
            
             print('sending:: steering angle:{} throttle:{}'.format(steering_angle, throttle))
@@ -57,6 +62,8 @@ def telemetry(sid, data):
     else:
         sio.emit('manual', data={}, skip_sid=True)
 
+def GetReward(env):
+    pass
 
 @sio.on('connect')
 def connect(sid, environ):

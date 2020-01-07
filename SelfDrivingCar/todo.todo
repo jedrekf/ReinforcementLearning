@@ -1,0 +1,8 @@
+tasks:
+    ☐ trzeba na podstawie tego jak ida linie byc w stanie okreslic jakie czesci grida (128x64) sa aktywne - czyli w ktorym kwadracie zaczyna i konczy sie rysowana linia. - tylkoo, ze czy nie jest tak, ze tak naprawde to mamy rownanie linii, w takim wypadku mozna kategoryzowac linie (koniecznie 2 na raz)
+
+    ☐ linia = ax+b -> 2 zmienne -> b = <0, pic_len> 
+    idea:
+        ☐ zmienic zmienne continuous na discrete -> w sensie wypluwany przez agenta promien skretu zmienic na mozliwe o 5 stopni z <-25, 25>
+        ☐ to samo zrobic dla danych dostawanych -> na razie ograniczyc to tylko do tych 2 linii ktore dostajemy -> 
+    

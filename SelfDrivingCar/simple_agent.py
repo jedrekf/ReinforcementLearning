@@ -1,10 +1,9 @@
-
 class SimpleAgent:
     def __init__(self, env):
         self.env = env
 
     def process(self):
-        m1, m2 = self.env.lane_vectors
+        l1, m1, l2, m2 = self.env.lane_vectors
         if m1 < 0 and m2 < 0:
             steering_angle  = 0.2
         elif m1 > 0  and m2 > 0:
@@ -19,6 +18,6 @@ class SimpleAgent:
             self.env.speed_limit = self.env.min_speed  # slow down
         else:
             self.env.speed_limit = self.env.speed_limit
-        throttle = 1.0 - steering_angle ** 2 - (self.env.speed / self.env.speed_limit) ** 2
+            throttle = 1.0 - steering_angle ** 2 - (self.env.speed / self.env.speed_limit) ** 2
 
         return (steering_angle, throttle)
