@@ -71,6 +71,9 @@ def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
 
         top_lanes = sorted(line_counter.items(), key=lambda item: item[1])[::-1][:2]
 
+        # if len(top_lanes) < 2:
+        #     return [0,0,0,0], [0,0,0,0], None, None, None, None
+
         lane1_m, lane1_b = top_lanes[0][0]
         lane2_m, lane2_b = top_lanes[1][0]
 

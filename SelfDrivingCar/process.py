@@ -3,9 +3,9 @@ import cv2
 import time
 # import pyautogui
 from draw_lanes import draw_lanes
-from grabscreen import grab_screen
 from PIL import Image
 from displayimg import *
+from config import DRAW_LANES
 
 def roi(img, vertices):
     
@@ -49,28 +49,24 @@ def process_img(image):
     # more info: http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_houghlines/py_houghlines.html
     #                                     rho   theta   thresh  min length, max gap:        
     lines = cv2.HoughLinesP(processed_img, 1, np.pi/180, 20,      10,       15)
-    m1 = 0
-    m2 = 0
+
     try:
         l1, l2, m1, b1, m2, b2 = draw_lanes(original_image,lines)
-        cv2.line(original_image, (l1[0], l1[1]), (l1[2], l1[3]), [0,255,0], 5)
-        cv2.line(original_image, (l2[0], l2[1]), (l2[2], l2[3]), [0,255,0], 5)
-        # showimg(original_image)
+        if DRAW_LANES:
+            cv2.line(original_image, (l1[0], l1[1]), (l1[2], l1[3]), [0,255,0], 5)
+            cv2.line(original_image, (l2[0], l2[1]), (l2[2], l2[3]), [0,255,0], 5)
     except Exception as e:
         print(str(e))
         pass
-    try:
+    if DRAW_LANES:
         for coords in lines:
             coords = coords[0]
             try:
                 cv2.line(processed_img, (coords[0], coords[1]), (coords[2], coords[3]), [255,0,0], 3)
             except Exception as e:
                 print(str(e))
-    except Exception as e:
-        pass
 
-    return processed_img,original_image, m1, b1, m2, b2
-
+    return processed_img, original_image, m1, b1, m2, b2
 
 
 if __name__ == '__main__':

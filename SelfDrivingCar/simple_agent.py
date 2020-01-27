@@ -3,9 +3,9 @@ class SimpleAgent:
         self.env = env
 
     def process(self):
-        l1, m1, l2, m2 = self.env.lane_vectors
+        m1, m2 = self.env.current_state
         if m1 < 0 and m2 < 0:
-            steering_angle  = 0.2
+            steering_angle = 0.2
         elif m1 > 0  and m2 > 0:
             steering_angle = -0.2
         else:
