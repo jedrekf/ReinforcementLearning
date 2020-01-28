@@ -1,7 +1,7 @@
 import math
 import random
 import numpy as np 
-from config import MAX_SLOPE,MAX_ANGLE, ANGLE_CHANGE, IMG_HEIGHT, IMG_WIDTH, B_INTERVAL, SLOPE_INTERVAL, EPS_DECAY, EPS_MIN, START_EPS, ALPHA, GAMMA, RUNNING_MODE_TRAIN
+from config import *
 from helpers import *
 
 class DriverAgent:
@@ -15,7 +15,7 @@ class DriverAgent:
         self.eps = start_eps
         self.eps_decay = eps_decay
         self.sim_count = 1
-        self.last_speeds = np.ones(10)
+        self.last_speeds = np.ones(LAST_SPPED_FRAMES)
 
     def process(self):
         self.i += 1
@@ -24,9 +24,7 @@ class DriverAgent:
         self.eps = EPS_DECAY * self.eps
         self.eps = max(self.eps, EPS_MIN)
 
-        # if you want to fully random explore x first step use this
-        # self.i < self.random_exp_n or
-        if  RUNNING_MODE_TRAIN and random.random() < self.eps:
+        if  RUNNING_MODE_TRAIN and (self.i < self.random_exp_n or random.random() < self.eps):
             #if exploring take random action = angle
             action = random.randint(0, len(self.Q[state])-1)
             steering_angle = action*ANGLE_CHANGE - MAX_ANGLE
@@ -36,15 +34,15 @@ class DriverAgent:
             action = np.argmax(self.Q[state])
             steering_angle = action*ANGLE_CHANGE - MAX_ANGLE
 
-        # calculate the throttle for steering angle 
+        # calculate the throttle for steering angle
         # lower the throttle as the speed increases
         # if the speed is above the current speed limit, we are on a downhill.
         # make sure we slow down first and then go back to the original max speed.
         if self.env.speed > self.env.speed_limit:
-            self.env.speed_limit = self.env.min_speed  # slow down
+            self.env.speed_limit = MIN_SPEED  # slow down
         else:
-            self.env.speed_limit = self.env.speed_limit
-            throttle = 1.0 - steering_angle ** 2 - (self.env.speed / self.env.speed_limit) ** 2
+            self.env.speed_limit = MAX_SPEED
+        throttle = 1.0 - steering_angle ** 2 - (self.env.speed / self.env.speed_limit) ** 2
 
         return steering_angle, throttle, action
 

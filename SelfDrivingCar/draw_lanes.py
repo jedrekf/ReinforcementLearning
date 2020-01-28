@@ -4,95 +4,89 @@ from statistics import mean
 import numpy as np
 
 def draw_lanes(img, lines, color=[0, 255, 255], thickness=3):
+    # finds the maximum y value for a lane marker 
+    # (since we cannot assume the horizon will always be at the same point.)
 
-    # if this fails, go with some default line
-    try:
+    ys = []  
+    for i in lines:
+        for ii in i:
+            ys += [ii[1],ii[3]]
+    min_y = min(ys)
+    max_y = 160
+    new_lines = []
+    line_dict = {}
 
-        # finds the maximum y value for a lane marker 
-        # (since we cannot assume the horizon will always be at the same point.)
+    for idx,i in enumerate(lines):
+        for xyxy in i:
+            # These four lines:
+            # modified from http://stackoverflow.com/questions/21565994/method-to-return-the-equation-of-a-straight-line-given-two-points
+            # Used to calculate the definition of a line, given two sets of coords.
+            x_coords = (xyxy[0],xyxy[2])
+            y_coords = (xyxy[1],xyxy[3])
+            A = vstack([x_coords,ones(len(x_coords))]).T
+            m, b = lstsq(A, y_coords)[0]
 
-        ys = []  
-        for i in lines:
-            for ii in i:
-                ys += [ii[1],ii[3]]
-        min_y = min(ys)
-        max_y = 160
-        new_lines = []
-        line_dict = {}
+            if m != 0:
+                # Calculating our new, and improved, xs
+                x1 = (min_y-b) / m
+                x2 = (max_y-b) / m
 
-        for idx,i in enumerate(lines):
-            for xyxy in i:
-                # These four lines:
-                # modified from http://stackoverflow.com/questions/21565994/method-to-return-the-equation-of-a-straight-line-given-two-points
-                # Used to calculate the definition of a line, given two sets of coords.
-                x_coords = (xyxy[0],xyxy[2])
-                y_coords = (xyxy[1],xyxy[3])
-                A = vstack([x_coords,ones(len(x_coords))]).T
-                m, b = lstsq(A, y_coords)[0]
+                line_dict[idx] = [m,b,[int(x1), min_y, int(x2), max_y]]
+                new_lines.append([int(x1), min_y, int(x2), max_y])
 
-                if m != 0:
-                    # Calculating our new, and improved, xs
-                    x1 = (min_y-b) / m
-                    x2 = (max_y-b) / m
+    final_lanes = {}
 
-                    line_dict[idx] = [m,b,[int(x1), min_y, int(x2), max_y]]
-                    new_lines.append([int(x1), min_y, int(x2), max_y])
-
-        final_lanes = {}
-
-        for idx in line_dict:
-            final_lanes_copy = final_lanes.copy()
-            m = line_dict[idx][0]
-            b = line_dict[idx][1]
-            line = line_dict[idx][2]
-            
-            if len(final_lanes) == 0:
-                final_lanes[m] = [ [m,b,line] ]
-                
-            else:
-                found_copy = False
-
-                for other_ms in final_lanes_copy:
-
-                    if not found_copy:
-                        if abs(other_ms*1.2) > abs(m) > abs(other_ms*0.8):
-                            if abs(final_lanes_copy[other_ms][0][1]*1.2) > abs(b) > abs(final_lanes_copy[other_ms][0][1]*0.8):
-                                final_lanes[other_ms].append([m,b,line])
-                                found_copy = True
-                                break
-                        else:
-                            final_lanes[m] = [ [m,b,line] ]
-
-        line_counter = {}
-
-        for lanes in final_lanes:
-            m_b = tuple(final_lanes[lanes][0][:2])
-            line_counter[m_b] = len(final_lanes[lanes])
-
-        top_lanes = sorted(line_counter.items(), key=lambda item: item[1])[::-1][:2]
-
-        # if len(top_lanes) < 2:
-        #     return [0,0,0,0], [0,0,0,0], None, None, None, None
-
-        lane1_m, lane1_b = top_lanes[0][0]
-        lane2_m, lane2_b = top_lanes[1][0]
-
-        def average_lane(lane_data):
-            x1s = []
-            y1s = []
-            x2s = []
-            y2s = []
-            for data in lane_data:
-                x1s.append(data[2][0])
-                y1s.append(data[2][1])
-                x2s.append(data[2][2])
-                y2s.append(data[2][3])
-            return int(mean(x1s)), int(mean(y1s)), int(mean(x2s)), int(mean(y2s)) 
-
-        l1_x1, l1_y1, l1_x2, l1_y2 = average_lane(final_lanes[lane1_m])
-        l2_x1, l2_y1, l2_x2, l2_y2 = average_lane(final_lanes[lane2_m])
+    for idx in line_dict:
+        final_lanes_copy = final_lanes.copy()
+        m = line_dict[idx][0]
+        b = line_dict[idx][1]
+        line = line_dict[idx][2]
         
+        if len(final_lanes) == 0:
+            final_lanes[m] = [ [m,b,line] ]
+            
+        else:
+            found_copy = False
 
-        return [l1_x1, l1_y1, l1_x2, l1_y2], [l2_x1, l2_y1, l2_x2, l2_y2], lane1_m, lane1_b, lane2_m, lane2_b
-    except Exception as e:
-        print(str(e))
+            for other_ms in final_lanes_copy:
+
+                if not found_copy:
+                    if abs(other_ms*1.2) > abs(m) > abs(other_ms*0.8):
+                        if abs(final_lanes_copy[other_ms][0][1]*1.2) > abs(b) > abs(final_lanes_copy[other_ms][0][1]*0.8):
+                            final_lanes[other_ms].append([m,b,line])
+                            found_copy = True
+                            break
+                    else:
+                        final_lanes[m] = [ [m,b,line] ]
+
+    line_counter = {}
+
+    for lanes in final_lanes:
+        m_b = tuple(final_lanes[lanes][0][:2])
+        line_counter[m_b] = len(final_lanes[lanes])
+
+    top_lanes = sorted(line_counter.items(), key=lambda item: item[1])[::-1][:2]
+
+    # if len(top_lanes) < 2:
+    #     return [0,0,0,0], [0,0,0,0], None, None, None, None
+
+    lane1_m, lane1_b = top_lanes[0][0]
+    lane2_m, lane2_b = top_lanes[1][0]
+
+    def average_lane(lane_data):
+        x1s = []
+        y1s = []
+        x2s = []
+        y2s = []
+        for data in lane_data:
+            x1s.append(data[2][0])
+            y1s.append(data[2][1])
+            x2s.append(data[2][2])
+            y2s.append(data[2][3])
+        return int(mean(x1s)), int(mean(y1s)), int(mean(x2s)), int(mean(y2s)) 
+
+    l1_x1, l1_y1, l1_x2, l1_y2 = average_lane(final_lanes[lane1_m])
+    l2_x1, l2_y1, l2_x2, l2_y2 = average_lane(final_lanes[lane2_m])
+    
+
+    return [l1_x1, l1_y1, l1_x2, l1_y2], [l2_x1, l2_y1, l2_x2, l2_y2], lane1_m, lane1_b, lane2_m, lane2_b

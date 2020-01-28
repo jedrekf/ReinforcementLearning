@@ -1,4 +1,4 @@
-RUNNING_MODE_TRAIN = True
+RUNNING_MODE_TRAIN = False
 MAX_SPEED = 25
 MIN_SPEED = 10
 ANGLE_CHANGE = 0.1 # minimum angle change
@@ -16,11 +16,14 @@ MAX_ANGLE = 1
 ALPHA = 0.9 #learning rate
 GAMMA = 0.75 #discount factor
 #epsilong greedy params
-EPS_MIN = 0.1 # minimum eps
-START_EPS = 0.1 #starting eps
+EPS_MIN = 0.2 # minimum eps
+START_EPS = 1 #starting eps
 EPS_DECAY = 0.998 # how fast eps decays
 
 TIME_LIMIT = 30 # in seconds
 INITIAL_FULL_RANDOM = 0
-DRAW_LANES = True
-SAVE_Q_SIM_COUNT = 110 # number of episodes after which save current Q table
+DRAW_LANES = False
+SAVE_Q_SIM_COUNT = 50 # number of episodes after which save current Q table
+#if the car for 15 frames doesnt go over 1 mph then restart simulation
+LAST_SPPED_FRAMES = 15
+STOP_SPEED = 0.99 

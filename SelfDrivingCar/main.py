@@ -77,20 +77,21 @@ def telemetry(sid, data):
             print('sending:: steering angle:{} throttle:{}'.format(steering_angle, throttle))
             send_control(steering_angle, throttle)
             current_state = next_state
-            agent.last_speeds[int(agent.i%10)] = speed
+            agent.last_speeds[int(agent.i%15)] = speed
             #check if 30 seconds passed or if the car is not moving(probably stuck)
             elapsed_time = time.time() - env.start_time
-            if RUNNING_MODE_TRAIN and (elapsed_time >= TIME_LIMIT or sum(agent.last_speeds < 0.1) == len(agent.last_speeds)):
+            if RUNNING_MODE_TRAIN and (elapsed_time >= TIME_LIMIT or sum(agent.last_speeds < STOP_SPEED) == len(agent.last_speeds)):
                 restart_simulation(agent)
-        except Exception as e:
+        except IndexError as e:
+            #not found line
+            print("lines not found so sending 0 0")
             print(e)
+            send_control(0,0)
+        except Exception as ex:
+            print(ex)
             if RUNNING_MODE_TRAIN:
                 print("exception during running simulation, it will restart now")
                 restart_simulation(agent)
-            else:
-                print("lines not found so sending 0 0")
-                send_control(0,0)
-
     else:
         sio.emit('manual', data={}, skip_sid=True)
 
