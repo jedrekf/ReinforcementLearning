@@ -14,7 +14,7 @@ mccabe==0.6.1
 monotonic==1.5
 numpy==1.17.4
 opencv-python==4.1.2.30
-Pillow==6.2.1
+Pillow==9.0.1
 pylint==2.4.4
 pypiwin32==223
 python-engineio==3.11.1
